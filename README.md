@@ -11,6 +11,9 @@ This container is based on **Debian** (via the `python-slim` base image) and com
 - **Ansible** (Core) + `jmespath` filter support
 - **Kubernetes Client (kubectl)**
 - **Helm** 
+- **Docker CLI** (`docker-ce-cli`, `docker-buildx-plugin`, `docker-compose-plugin`)
+- **Common Utilities** (`jq`, `nano`, `tar`, `zip`, `unzip`, `wget`, `curl`, `apt-utils`)
+- **Configurable OS User** (matches container user UID/GID to host permissions)
 
 When logging into the container via an interactive bash session, your terminal prompt (`PS1`) dynamically displays the loaded, exact versions of Ansible, Kubectl, and Helm to assist debugging. 
 
@@ -23,6 +26,11 @@ Currently tracking:
 - `ANSIBLE_RELEASE`
 - `KUBECTL_RELEASE`
 - `HELM_RELEASE`
+
+User Configuration (to ensure proper file permissions with the host):
+- `USERNAME` (Default: `dev`)
+- `USER_UID` (Default: `1001`)
+- `USER_GID` (Default: `1001`)
 
 Docker caches will be re-evaluated against the latest compatible minor versions specified automatically upon a rebuild.
 
