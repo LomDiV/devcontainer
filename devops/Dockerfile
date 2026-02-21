@@ -7,6 +7,10 @@ ARG ANSIBLE_RELEASE="13"
 ARG KUBECTL_RELEASE="1.34"
 ARG HELM_RELEASE="4"
 
+ARG USERNAME=dev
+ARG USER_UID=1001
+ARG USER_GID=1001
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies
@@ -17,12 +21,30 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
+    jq \
+    nano \
+    tar \
     openssh-client \
     sshpass \
     wget \
     procps \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    zip \
+    unzip \
+    apt-utils \
+    ca-certificates && \
+    echo 'Adding docker repository...' && \
+    install -m 0755 -d /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc && \
+    chmod a+r /etc/apt/keyrings/docker.asc && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+    apt-get update && apt-get install -y --no-install-recommends \
+    docker-ce-cli \
+    docker-buildx-plugin \
+    docker-compose-plugin &&\
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    update-ca-certificates
 
 
 
@@ -39,15 +61,16 @@ RUN HELM_VERSION=$(git ls-remote --tags https://github.com/helm/helm.git | awk -
     && mv linux-amd64/helm /usr/local/bin/helm \
     && rm -rf linux-amd64 helm-${HELM_VERSION}-linux-amd64.tar.gz
 
-# Create a non-root user 'dev'
-RUN useradd -m -s /bin/bash dev
+# Create a non-root user 
+RUN groupadd --gid $USER_GID $USERNAME && \
+    useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -s /bin/bash
 
-# Switch to 'dev' user
-USER dev
-WORKDIR /home/dev
+# Switch to user
+USER $USERNAME
+WORKDIR /home/$USERNAME 
 
 # Update PATH for user installed pip packages
-ENV PATH="/home/dev/.local/bin:${PATH}"
+ENV PATH="/home/$USERNAME/.local/bin:${PATH}"
 
 # Install Ansible and typically used Python dependencies
 # kubernetes: Python client for K8s (required for k8s_module)

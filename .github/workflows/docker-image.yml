@@ -68,6 +68,9 @@ jobs:
             --build-arg ANSIBLE_RELEASE=$ANSIBLE_RELEASE \
             --build-arg KUBECTL_RELEASE=$KUBECTL_RELEASE \
             --build-arg HELM_RELEASE=$HELM_RELEASE \
+            --build-arg USERNAME=$USERNAME \
+            --build-arg USER_UID=$USER_UID \
+            --build-arg USER_GID=$USER_GID \
             --tag ghcr.io/${{ env.REPO_LOWER }}-devops:${{ env.IMAGE_VERSION }} \
             --tag ghcr.io/${{ env.REPO_LOWER }}-devops:${{ env.ROLLING_VERSION }}
 
