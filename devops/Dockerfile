@@ -65,9 +65,11 @@ RUN { \
     echo 'echo -e "\n\033[1;36m===================================================================\033[0m"'; \
     echo 'echo -e "\033[1;32m                         DevContainer Tools                        \033[0m"'; \
     echo 'echo -e "\033[1;36m===================================================================\033[0m"'; \
+    echo 'Ansible:'; \
     echo 'ansible --version | head -n 1'; \
-    echo 'echo ""'; \
+    echo 'Kubectl:'; \
     echo 'kubectl version --client'; \
+    echo 'Helm:'; \
     echo 'helm version'; \
     echo 'echo -e "\033[1;36m===================================================================\033[0m\n"'; \
     echo "export A_VER=\$(ansible --version | head -n 1 | awk '{print \$3}' | tr -d ']')"; \
