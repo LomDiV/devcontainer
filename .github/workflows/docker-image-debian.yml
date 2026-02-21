@@ -1,0 +1,71 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - 'ver/*' # Changed: Now matches tags like 'ver/1.2.3'
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set image version
+        id: set_version
+        run: |
+          VERSION_REF_NAME=${{ github.ref_name }}
+
+          # Check if the trigger is a tag push matching the 'ver/...' pattern
+          if [[ "${{ github.ref }}" == refs/tags/ver/* ]]; then
+            # Strip the 'ver/' prefix from the tag name (e.g., 'ver/1.2.3' -> '1.2.3')
+            # The bash substitution ${variable#prefix} handles this cleanly.
+            PARSED_VERSION="${VERSION_REF_NAME#ver/}"
+            
+            echo "IMAGE_VERSION=$PARSED_VERSION" >> $GITHUB_ENV
+            echo "ROLLING_VERSION=latest" >> $GITHUB_ENV
+          else
+            # For pushes to 'main' branch or pull requests
+            echo "IMAGE_VERSION=$(date +%s)" >> $GITHUB_ENV
+            echo "ROLLING_VERSION=develop" >> $GITHUB_ENV
+          fi
+
+      - name: Set lowercase repository name
+        id: repo_name_lower
+        run: echo "REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build the Docker image on Debian
+        run: |
+          # Source variables from versions file and export them
+          set -a
+          . versions.env
+          set +a
+
+          docker build devops --file devops/Dockerfile \
+            --build-arg PYTHON_VERSION=$PYTHON_VERSION \
+            --build-arg ANSIBLE_RELEASE=$ANSIBLE_RELEASE \
+            --build-arg KUBECTL_RELEASE=$KUBECTL_RELEASE \
+            --build-arg HELM_RELEASE=$HELM_RELEASE \
+            --tag ghcr.io/${{ env.REPO_LOWER }}-devops:${{ env.IMAGE_VERSION }} \
+            --tag ghcr.io/${{ env.REPO_LOWER }}-devops:${{ env.ROLLING_VERSION }}
+
+      - name: Push Docker image
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        run: docker push --all-tags ghcr.io/${{ env.REPO_LOWER }}-devops
