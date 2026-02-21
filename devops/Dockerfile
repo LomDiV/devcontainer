@@ -60,4 +60,20 @@ RUN pip install --no-cache-dir --user \
 # Verify installations
 RUN ansible --version && kubectl version --client && helm version
 
+# Add version output to bashrc
+RUN { \
+    echo 'echo -e "\n\033[1;36m===================================================================\033[0m"'; \
+    echo 'echo -e "\033[1;32m                         DevContainer Tools                        \033[0m"'; \
+    echo 'echo -e "\033[1;36m===================================================================\033[0m"'; \
+    echo 'ansible --version | head -n 1'; \
+    echo 'echo ""'; \
+    echo 'kubectl version --client'; \
+    echo 'helm version'; \
+    echo 'echo -e "\033[1;36m===================================================================\033[0m\n"'; \
+    echo "export A_VER=\$(ansible --version | head -n 1 | awk '{print \$3}' | tr -d ']')"; \
+    echo "export K_VER=\$(kubectl version --client | grep 'Client Version:' | awk '{print \$3}')"; \
+    echo "export H_VER=\$(helm version --short | awk -F+ '{print \$1}')"; \
+    echo "export PS1=\"\\[\\033[01;32m\\]\\u@\\h\\[\\033[00m\\] \\[\\033[01;33m\\][a:\${A_VER} k:\${K_VER} h:\${H_VER}]\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\]\\$ \""; \
+    } >> ~/.bashrc
+
 CMD ["/bin/bash"]

@@ -1,6 +1,6 @@
 {
     "name": "DevOps DevContainer",
-    "image": "ghcr.io/lomdiv/devcontainers-devops:latest",
+    "image": "ghcr.io/lomdiv/devcontainer-devops:latest",
     "customizations": {
         "vscode": {
             "extensions": [
