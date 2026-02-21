@@ -2,7 +2,7 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "feature/**", "bugfix/**" ]
     tags:
       - 'ver/*' # Changed: Now matches tags like 'ver/1.2.3'
   pull_request:
@@ -34,6 +34,11 @@ jobs:
             
             echo "IMAGE_VERSION=$PARSED_VERSION" >> $GITHUB_ENV
             echo "ROLLING_VERSION=latest" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == refs/heads/feature/* ]] || [[ "${{ github.ref }}" == refs/heads/bugfix/* ]]; then
+            # Use branch name for image tag, safely replacing slashes with hyphens
+            SAFE_BRANCH_NAME=$(echo "$VERSION_REF_NAME" | tr '/' '-')
+            echo "IMAGE_VERSION=$SAFE_BRANCH_NAME" >> $GITHUB_ENV
+            echo "ROLLING_VERSION=$SAFE_BRANCH_NAME" >> $GITHUB_ENV
           else
             # For pushes to 'main' branch or pull requests
             echo "IMAGE_VERSION=$(date +%s)" >> $GITHUB_ENV
@@ -67,5 +72,5 @@ jobs:
             --tag ghcr.io/${{ env.REPO_LOWER }}-devops:${{ env.ROLLING_VERSION }}
 
       - name: Push Docker image
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/bugfix/'))
         run: docker push --all-tags ghcr.io/${{ env.REPO_LOWER }}-devops
