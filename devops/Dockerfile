@@ -75,24 +75,28 @@ ENV PATH="/home/$USERNAME/.local/bin:${PATH}"
 # Install Ansible and typically used Python dependencies
 # kubernetes: Python client for K8s (required for k8s_module)
 # jmespath: Required for json_query filter
+# ansible-lint: Best practices checker for Ansible
 RUN pip install --no-cache-dir --user \
     "ansible==${ANSIBLE_RELEASE}.*" \
+    ansible-lint \
     kubernetes \
     jmespath
 
 # Verify installations
-RUN ansible --version && kubectl version --client && helm version
+RUN ansible --version && ansible-lint --version && kubectl version --client && helm version
 
 # Add version output to bashrc
 RUN { \
     echo 'echo -e "\n\033[1;36m===================================================================\033[0m"'; \
     echo 'echo -e "\033[1;32m                         DevContainer Tools                        \033[0m"'; \
     echo 'echo -e "\033[1;36m===================================================================\033[0m"'; \
-    echo 'echo -e "Ansible:"'; \
+    echo 'echo "Ansible:"'; \
     echo 'ansible --version | head -n 1'; \
-    echo 'echo -e "Kubectl:"'; \
+    echo 'echo "Ansible Lint:"'; \
+    echo 'ansible-lint --version | head -n 1'; \
+    echo 'echo "Kubectl:"'; \
     echo 'kubectl version --client'; \
-    echo 'echo -e "Helm:"'; \
+    echo 'echo "Helm:"'; \
     echo 'helm version'; \
     echo 'echo -e "\033[1;36m===================================================================\033[0m\n"'; \
     echo "export A_VER=\$(ansible --version | head -n 1 | awk '{print \$3}' | tr -d ']')"; \
