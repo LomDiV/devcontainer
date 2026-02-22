@@ -56,7 +56,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build the Docker image on Debian
+      - name: Build the Docker image for DevOps
         run: |
           # Source variables from versions file and export them
           set -a
@@ -74,6 +74,27 @@ jobs:
             --tag ghcr.io/${{ env.REPO_LOWER }}-devops:${{ env.IMAGE_VERSION }} \
             --tag ghcr.io/${{ env.REPO_LOWER }}-devops:${{ env.ROLLING_VERSION }}
 
-      - name: Push Docker image
+      - name: Push Docker image for DevOps
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/bugfix/'))
         run: docker push --all-tags ghcr.io/${{ env.REPO_LOWER }}-devops
+
+      - name: Build the Docker image for Groovy
+        run: |
+          # Source variables from versions file and export them
+          set -a
+          . versions.env
+          set +a
+
+          docker build groovy --file groovy/Dockerfile \
+            --build-arg JAVA_VERSION=$JAVA_VERSION \
+            --build-arg GROOVY_VERSION=$GROOVY_VERSION \
+            --build-arg GRADLE_VERSION=$GRADLE_VERSION \
+            --build-arg USERNAME=$USERNAME \
+            --build-arg USER_UID=$USER_UID \
+            --build-arg USER_GID=$USER_GID \
+            --tag ghcr.io/${{ env.REPO_LOWER }}-groovy:${{ env.IMAGE_VERSION }} \
+            --tag ghcr.io/${{ env.REPO_LOWER }}-groovy:${{ env.ROLLING_VERSION }}
+
+      - name: Push Docker image for Groovy
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/bugfix/'))
+        run: docker push --all-tags ghcr.io/${{ env.REPO_LOWER }}-groovy

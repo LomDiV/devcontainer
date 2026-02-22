@@ -1,0 +1,21 @@
+{
+    "name": "Groovy DevContainer",
+    "image": "ghcr.io/lomdiv/devcontainer-groovy:latest",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "vscjava.vscode-java-pack",
+                "vscjava.vscode-gradle",
+                "marlon407.code-groovy"
+            ]
+        }
+    },
+    "remoteUser": "dev",
+    "mounts": [
+        "source=${localEnv:HOME}/.gradle,target=/home/dev/.gradle,type=bind",
+        "source=${localEnv:HOME}/.bash_history,target=/home/dev/.bash_history,type=bind",
+        "source=${localEnv:HOME}/.gemini,target=/home/dev/.gemini,type=bind",
+        "source=${localEnv:HOME}/.gitconfig,target=/home/dev/.gitconfig,type=bind",
+        "source=${localEnv:HOME}/.ssh,target=/home/dev/.ssh,type=bind"
+    ]
+}
